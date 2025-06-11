@@ -1,0 +1,93 @@
+/* style.css - With Green Aesthetic + Background Image */
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(rgba(255,255,255,0.1), rgba(0,0,0,0.4)), url('farm-bg2.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(15px);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    transition: transform 0.3s ease;
+}
+
+.container:hover {
+    transform: translateY(-10px);
+}
+
+h1, h2 {
+    color: #2f7300;
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="number"] {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: inset 0 4px 6px rgba(0,0,0,0.05);
+    font-size: 14px;
+}
+
+input:focus {
+    box-shadow: 0 0 5px #4caf50;
+}
+
+button {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background-image: linear-gradient(135deg, #4caf50, #43c67c);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(67, 198, 124, 0.4);
+}
+
+.back-btn {
+    display: inline-block;
+    margin-top: 20px;
+    color: #2f7300;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.back-btn:hover {
+    color: #1b5e20;
+}
+
+#productDetails {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.85);
+    box-shadow: inset 0 4px 6px rgba(0,0,0,0.05);
+}

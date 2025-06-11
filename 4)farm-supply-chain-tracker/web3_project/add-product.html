@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Product</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Add Product</h2>
+        <form id="productForm">
+            <input type="text" id="productId" placeholder="Product ID" required>
+            <input type="text" id="description" placeholder="Description" required>
+            <input type="text" id="producer" placeholder="Producer Name" required>
+            <input type="date" id="harvestDate" required>
+            <button type="submit">Add</button>
+        </form>
+
+        <div id="productDetails" class="data-display" style="margin-top: 20px;"></div>
+
+        <a href="index.html" class="back-btn">Back to Home</a>
+    </div>
+
+    <script>
+        const contractAddress = "0x7C3D7Dd2Fc263b041cf97BFb27D284dfBA6b4C94"; // your contract
+        const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "id",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "producer",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "harvestDate",
+				"type": "uint256"
+			}
+		],
+		"name": "addProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "id",
+				"type": "string"
+			}
+		],
+		"name": "getProduct",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "id",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "description",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "producer",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "harvestDate",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "exists",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct AddProduct.Product",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+    
+        let web3;
+        let contract;
+        let account;
+    
+        window.addEventListener("load", async () => {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                const accounts = await web3.eth.getAccounts();
+                account = accounts[0];
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+            } else {
+                alert("Please install MetaMask to continue.");
+            }
+        });
+    
+        document.getElementById("productForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+    
+            const id = document.getElementById("productId").value.trim();
+            const desc = document.getElementById("description").value.trim();
+            const producer = document.getElementById("producer").value.trim();
+            const dateInput = document.getElementById("harvestDate").value;
+            const harvestDate = Math.floor(new Date(dateInput).getTime() / 1000);
+    
+            try {
+                // Check if product already exists before sending tx
+                const product = await contract.methods.getProduct(id).call();
+                if (product.exists) {
+                    alert("⚠️ Product with this ID already exists. Choose a different ID.");
+                    return;
+                }
+            } catch (err) {
+                // getProduct will throw if product does not exist - that's good
+                console.log("Product does not exist, proceeding to add.");
+            }
+    
+            try {
+                await contract.methods.addProduct(id, desc, producer, harvestDate).send({ from: account });
+    
+                document.getElementById("productDetails").innerHTML = `
+                    <h3>✅ Product Added</h3>
+                    <p><strong>ID:</strong> ${id}</p>
+                    <p><strong>Description:</strong> ${desc}</p>
+                    <p><strong>Producer:</strong> ${producer}</p>
+                    <p><strong>Harvest Date:</strong> ${dateInput}</p>
+                `;
+    
+                this.reset();
+            } catch (err) {
+                console.error("Error adding product:", err);
+                alert("❌ Transaction failed: " + err.message);
+            }
+        });
+    </script>
+</body>
+</html>

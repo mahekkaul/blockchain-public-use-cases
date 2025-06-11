@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Post a Job</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Post a Job</h2>
+        <form id="jobForm">
+            <input type="text" id="jobTitle" placeholder="Job Title" required>
+            <input type="text" id="company" placeholder="Company Name" required>
+            <input type="number" id="salary" placeholder="Salary" required>
+            <button type="submit">Post Job</button>
+        </form>
+
+        <h3>Available Jobs</h3>
+        <div class="data-display" id="jobList"></div>
+
+        <a href="index.html" class="back-btn">Back to Home</a>
+    </div>
+
+    <script>
+        const contractAddress = "0xC2820FF7BDdDD339a5a6A3C8B5Ef49b095eDE961"; // ✅ Replace with your deployed contract address
+        const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getJobByIndex",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getJobCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getJobs",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "title",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "company",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "salary",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "poster",
+						"type": "address"
+					}
+				],
+				"internalType": "struct JobBoard.Job[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "jobs",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "company",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "salary",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "poster",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "company",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "salary",
+				"type": "uint256"
+			}
+		],
+		"name": "postJob",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+];
+
+        let web3;
+        let contract;
+
+        window.addEventListener("load", async () => {
+            if (typeof window.ethereum !== "undefined") {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                displayJobs();
+            } else {
+                alert("🦊 Please install MetaMask.");
+            }
+        });
+
+        document.getElementById("jobForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const title = document.getElementById("jobTitle").value;
+            const company = document.getElementById("company").value;
+            const salary = parseInt(document.getElementById("salary").value);
+
+            try {
+                const accounts = await web3.eth.getAccounts();
+                await contract.methods.postJob(title, company, salary).send({
+                    from: accounts[0]
+                });
+                alert("✅ Job posted to blockchain!");
+                this.reset();
+                displayJobs();
+            } catch (err) {
+                console.error("❌ Error posting job:", err);
+                alert("Failed to post job: " + err.message);
+            }
+        });
+
+        async function displayJobs() {
+            const display = document.getElementById("jobList");
+            display.innerHTML = "<p>Loading jobs...</p>";
+
+            try {
+                const jobs = await contract.methods.getJobs().call();
+                if (jobs.length === 0) {
+                    display.innerHTML = "<p>No jobs available yet.</p>";
+                } else {
+                    display.innerHTML = jobs.map(job =>
+                        `<p><strong>${job.title}</strong> at ${job.company} – ₹${job.salary}</p>`
+                    ).join("");
+                }
+            } catch (err) {
+                console.error("❌ Error fetching jobs:", err);
+                display.innerHTML = "<p>Failed to load jobs.</p>";
+            }
+        }
+    </script>
+</body>
+</html>

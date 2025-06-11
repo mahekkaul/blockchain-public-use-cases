@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Applicant Type</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Applicant Type</h2>
+
+        <form id="typeForm">
+            <input type="text" id="applicantTypeName" placeholder="Applicant Name" required>
+            <input type="text" id="type" placeholder="Type (Full-time, Intern, Freelancer)" required>
+            <button type="submit">Submit Type</button>
+        </form>
+
+        <h3>Applicant Types</h3>
+        <div class="data-display" id="typeList"></div>
+
+        <a href="index.html" class="back-btn">Back to Home</a>
+    </div>
+
+    <script>
+        const contractAddress = "0xDE6A11d7A0f212CC75284Dc6049E33D169586d20"; // Replace with your deployed contract
+        const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "workType",
+				"type": "string"
+			}
+		],
+		"name": "updatePreference",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getPreferences",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "workType",
+						"type": "string"
+					}
+				],
+				"internalType": "struct ApplicantType.Preference[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "preferences",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "workType",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+        let web3;
+        let contract;
+        let userAccount;
+
+        async function initWeb3() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+                userAccount = accounts[0];
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                displayTypes();
+            } else {
+                alert("Please install MetaMask to use this app.");
+            }
+        }
+
+        document.getElementById("typeForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById("applicantTypeName").value;
+            const workType = document.getElementById("type").value;
+
+            try {
+                await contract.methods.updatePreference(name, workType).send({ from: userAccount });
+                alert("✅ Work Type Submitted!");
+                displayTypes();
+            } catch (err) {
+                console.error("❌ Error:", err);
+                alert("Something went wrong: " + err.message);
+            }
+
+            this.reset();
+        });
+
+        async function displayTypes() {
+            try {
+                const preferences = await contract.methods.getPreferences().call();
+                const container = document.getElementById("typeList");
+                container.innerHTML = "";
+
+                if (preferences.length === 0) {
+                    container.innerHTML = "<p>No preferences available.</p>";
+                } else {
+                    container.innerHTML = preferences.map(p =>
+                        `<p><strong>${p.name}</strong> prefers <em>${p.workType}</em></p>`
+                    ).join("");
+                }
+            } catch (err) {
+                console.error("❌ Failed to load preferences:", err);
+                document.getElementById("typeList").innerHTML = "<p>Error loading preferences.</p>";
+            }
+        }
+
+        window.addEventListener("load", initWeb3);
+    </script>
+</body>
+</html>

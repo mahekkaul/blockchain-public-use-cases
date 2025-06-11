@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            background: #444;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            display: block;
+        }
+        nav ul li a:hover {
+            background: #666;
+        }
+        main {
+            padding: 20px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #555;
+            color: white;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background: #333;
+            color: white;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Trade Finance Dashboard</h1>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="request.html">Request LC</a></li>
+            <li><a href="view.html">View LC</a></li>
+        </ul>
+    </nav>
+    
+    <main>
+        <section>
+            <h2>Approved Letters of Credit</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Buyer</th>
+                        <th>Seller</th>
+                        <th>Bank</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="approvedLcTableBody">
+                    <!-- Data will be injected dynamically here -->
+                </tbody>
+                <tbody id="lcTableBody">
+                    <!-- Manually added test data -->
+                    <tr>
+                        <td>1</td>
+                        <td>JASH</td>
+                        <td>CHARVIT</td>
+                        <td>MAHENDRA PUBLIC CORPORATE</td>
+                        <td>$12334</td>
+                        <td>COMPLETED</td>
+                        <td>Approved</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script src="Web3.js"></script>
+    <script>
+        function loadApprovedLCRecords() {
+            let lcRecords = JSON.parse(localStorage.getItem("lcRecords")) || [];
+            let tableBody = document.getElementById("approvedLcTableBody");
+            tableBody.innerHTML = ""; // Clear previous data
+
+            lcRecords.filter(lc => lc.status === "Approved").forEach(lc => {
+                let row = `<tr>
+                    <td>${lc.id}</td>
+                    <td>${lc.buyer}</td>
+                    <td>${lc.seller}</td>
+                    <td>${lc.bank}</td>
+                    <td>$${lc.amount}</td>
+                    <td>${lc.status}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        // Load data when the page loads
+        document.addEventListener("DOMContentLoaded", loadApprovedLCRecords);
+    </script>
+
+    <footer>
+        <p>&copy; 2025 Trade Finance System</p>
+    </footer>
+</body>
+</html>

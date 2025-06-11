@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View Product</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>View Product</h2>
+    <div style="display: flex; gap: 10px;">
+      <input type="text" id="productId" placeholder="Enter Product ID" required>
+      <button onclick="viewProduct()">View</button>
+    </div>
+    <div id="productInfo" class="data-display" style="margin-top: 20px;"></div>
+    <a href="index.html" class="back-btn">Back to Home</a>
+  </div>
+
+  <script>
+    const contractAddress = "0x6Af8249DBbF38D01Ffbf66251818Ff9De5813050"; // Replace with your contract address
+    const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_productId",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_description",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_producer",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_harvestDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_distributor",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_distributorDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_retailer",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_retailerDate",
+				"type": "uint256"
+			}
+		],
+		"name": "addProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"name": "products",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "productId",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "producer",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "harvestDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "distributor",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "distributorDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "retailer",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "retailerDate",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_productId",
+				"type": "string"
+			}
+		],
+		"name": "viewProduct",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "productId",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "producer",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "harvestDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "distributor",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "distributorDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "retailer",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "retailerDate",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+    let web3;
+    let contract;
+    let account;
+
+    window.addEventListener("load", async () => {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        const accounts = await web3.eth.getAccounts();
+        account = accounts[0];
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+      } else {
+        alert("Please install MetaMask to use this feature.");
+      }
+    });
+
+    async function viewProduct() {
+      const id = document.getElementById("productId").value.trim();
+      const display = document.getElementById("productInfo");
+      display.innerHTML = "⏳ Loading...";
+
+      try {
+        const result = await contract.methods.getProduct(id).call({ from: account });
+        const [pid, desc, producer, harvestDate] = result;
+        const date = new Date(harvestDate * 1000).toLocaleDateString();
+
+        display.innerHTML = `
+          <p><strong>ID:</strong> ${pid}</p>
+          <p><strong>Description:</strong> ${desc}</p>
+          <p><strong>Producer:</strong> ${producer}</p>
+          <p><strong>Harvest Date:</strong> ${date}</p>
+        `;
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        display.innerHTML = `<p style="color:red;">Success!! Good Job</p>`;
+      }
+    }
+  </script>
+</body>
+</html>

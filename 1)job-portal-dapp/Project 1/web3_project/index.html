@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3 Job Portal</title>
+
+    <!-- Only one Web3 import -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('bg4.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Poppins', sans-serif;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        a {
+            display: block;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            color: white;
+            text-align: center;
+            width: 80%;
+            max-width: 250px;
+            transition: 0.3s;
+        }
+
+        .register { background: #4CAF50; }
+        .register:hover { background: #45a049; }
+        .post { background: #008CBA; }
+        .post:hover { background: #007bb5; }
+        .ratings { background: #f39c12; }
+        .ratings:hover { background: #e67e22; }
+        .type { background: #9b59b6; }
+        .type:hover { background: #8e44ad; }
+
+        .connect-btn {
+            background: #ff5722;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            color: white;
+            transition: 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .connect-btn:hover {
+            background: #e64a19;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Web3 Job Portal</h1>
+        <p>Find blockchain jobs or hire top talent!</p>
+        <button class="connect-btn" onclick="connectWallet()">🔌 Connect MetaMask</button>
+        <div class="buttons">
+            <a href="registeration.html" class="register">Register as Applicant</a>
+            <a href="post job.html" class="post">Post a Job</a>
+            <a href="rating.html" class="ratings">Applicant Ratings</a>
+            <a href="applicant type.html" class="type">Applicant Type</a>
+        </div>
+    </div>
+
+    <script>
+        let web3;
+        let contract;
+        const contractAddress = "0x477161DBA6b5B72912b4464F5e21C4fBc7C8efb3"; // ✅ Your deployed contract
+        const contractABI = [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "admin",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "applicants",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "skills",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "experience",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "rating",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "workType",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllJobs",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "title",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "company",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "salary",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "poster",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isFilled",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct ApplicantRegistry.Job[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "applicantId",
+				"type": "uint256"
+			}
+		],
+		"name": "getApplicantById",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "skills",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "experience",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "rating",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "workType",
+						"type": "string"
+					}
+				],
+				"internalType": "struct ApplicantRegistry.Applicant",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getApplicantCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getApplicants",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "skills",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "experience",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "rating",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "workType",
+						"type": "string"
+					}
+				],
+				"internalType": "struct ApplicantRegistry.Applicant[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "jobId",
+				"type": "uint256"
+			}
+		],
+		"name": "getJobById",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "title",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "company",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "salary",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "poster",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isFilled",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct ApplicantRegistry.Job",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getJobCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "jobs",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "company",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "salary",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "poster",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isFilled",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "company",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "salary",
+				"type": "uint256"
+			}
+		],
+		"name": "postJob",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "applicantId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "rating",
+				"type": "uint256"
+			}
+		],
+		"name": "provideRating",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "skills",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "experience",
+				"type": "uint256"
+			}
+		],
+		"name": "registerApplicant",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "applicantId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "preference",
+				"type": "string"
+			}
+		],
+		"name": "updateWorkPreference",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
+;
+
+		async function connectWallet() {
+			if (typeof window.ethereum !== 'undefined') {
+				web3 = new Web3(window.ethereum);
+				await window.ethereum.request({ method: 'eth_requestAccounts' });
+				contract = new web3.eth.Contract(contractABI, contractAddress);
+				alert("Connected to MetaMask!")
+			} else {
+				alert("Please install MetaMask to use this feature.");
+			}
+		}
+	</script>
+
+</body>
+</html>
+

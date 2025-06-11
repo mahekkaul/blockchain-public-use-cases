@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View LC</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            background: #444;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            display: block;
+        }
+        nav ul li a:hover {
+            background: #666;
+        }
+        main {
+            padding: 20px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #555;
+            color: white;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background: #333;
+            color: white;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Trade Finance System</h1>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="request.html">Request LC</a></li>
+            <li><a href="view.html">View LC</a></li>
+        </ul>
+    </nav>
+    
+    <main>
+        <h2>View Letters of Credit</h2>
+        <button onclick="connectWallet()">Connect MetaMask</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Buyer</th>
+                    <th>Seller</th>
+                    <th>Bank</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="lcTableBody">
+                <!-- Manually added test data -->
+                <tr>
+                    <td>1</td>
+                    <td>JASH</td>
+                    <td>CHARVIT</td>
+                    <td>MAHENDRA PUBLIC CORPORATE</td>
+                    <td>$12334</td>
+                    <td>COMPLETED</td>
+                    <td>Approved</td>
+                </tr>
+            </tbody>
+            <tbody id="lcTableBody">
+                <!-- Manually added test data -->
+                <tr>
+                    <td>2</td>
+                    <td>MAHEK</td>
+                    <td>CHARVIT</td>
+                    <td>SBI</td>
+                    <td>$12</td>
+                    <td>PENDING</td>
+                    <td>Approved</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/Web3.min.js"></script>
+    <script>
+        let web3;
+        let contract;
+        const contractAddress = "0xb5fC6ed08E7cf04025030c1f207aaBC71Dc9D7E8"; // Replace with your actual contract address
+        const contractABI = [
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "lcId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "approveLC",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "buyer",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "seller",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "bank",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "createLC",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "lcId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "status",
+                        "type": "string"
+                    }
+                ],
+                "name": "LCApproved",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "lcId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getLC",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getLCCount",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "lcs",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "buyer",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "seller",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "bank",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "status",
+                        "type": "string"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                console.log("Connected to MetaMask");
+                loadLCRecordsFromBlockchain();
+            } else {
+                alert("Please install MetaMask to use this feature.");
+            }
+        }
+
+        async function loadLCRecordsFromBlockchain() {
+            const lcCount = await contract.methods.getLCCount().call();
+            let tableBody = document.getElementById("lcTableBody");
+
+            // Now dynamically loading the LC records from the blockchain
+            for (let i = 0; i < lcCount; i++) {
+                const lc = await contract.methods.getLC(i).call();
+                let row = `<tr>
+                    <td>${lc[0]}</td>
+                    <td>${lc[1]}</td>
+                    <td>${lc[2]}</td>
+                    <td>${lc[3]}</td>
+                    <td>$${lc[4]}</td>
+                    <td id="status-${lc[0]}">${lc[5]}</td>
+                    <td>${lc[5] === "Pending" ? `<button onclick="approveLC(${lc[0]})">Approve</button>` : "Approved"}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            }
+        }
+
+        async function approveLC(lcId) {
+            const accounts = await web3.eth.getAccounts();
+            await contract.methods.approveLC(lcId).send({ from: accounts[0] });
+            document.getElementById(`status-${lcId}`).innerText = "Approved";
+        }
+    </script>
+
+    <footer>
+        <p>&copy; 2025 Trade Finance System</p>
+    </footer>
+</body>
+</html>

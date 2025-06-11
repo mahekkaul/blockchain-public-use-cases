@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Register Applicant</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Applicant Registration</h2>
+        <form id="registerForm">
+            <input type="text" id="name" placeholder="Name" required />
+            <input type="text" id="skills" placeholder="Skills" required />
+            <input type="number" id="experience" placeholder="Experience (Years)" required />
+            <button type="submit">Register</button>
+        </form>
+        <h3>Registered Applicants</h3>
+        <div class="data-display" id="applicantList"></div>
+        <a href="index.html" class="back-btn">Back to Home</a>
+    </div>
+
+    <script>
+        const contractAddress = "0x477161DBA6b5B72912b4464F5e21C4fBc7C8efb3"; // your deployed contract address
+        const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "skills",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "experience",
+				"type": "uint256"
+			}
+		],
+		"name": "registerApplicant",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "applicants",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "skills",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "experience",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getApplicantCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getApplicants",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "skills",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "experience",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct ApplicantRegistry.Applicant[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+        let web3;
+        let contract;
+
+        window.addEventListener("load", async () => {
+            if (typeof window.ethereum !== "undefined") {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                displayApplicants();
+            } else {
+                alert("🦊 Please install MetaMask to use this feature.");
+            }
+        });
+
+        document.getElementById("registerForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const name = document.getElementById("name").value;
+            const skills = document.getElementById("skills").value;
+            const experience = document.getElementById("experience").value;
+
+            try {
+                const accounts = await web3.eth.getAccounts();
+                await contract.methods.registerApplicant(name, skills, parseInt(experience)).send({
+                    from: accounts[0]
+                });
+                alert("✅ Registered on blockchain!");
+                this.reset();
+                displayApplicants();
+            } catch (err) {
+                console.error("❌ Error registering applicant:", err);
+                alert("Error: " + err.message);
+            }
+        });
+
+        async function displayApplicants() {
+            try {
+                const applicants = await contract.methods.getApplicants().call();
+                const display = document.getElementById("applicantList");
+                display.innerHTML = applicants.map(app => `
+                    <p><strong>${app.name}</strong> - ${app.skills} (${app.experience} years)</p>
+                `).join("");
+            } catch (err) {
+                console.error("Error fetching applicants:", err);
+                document.getElementById("applicantList").innerHTML = "<p>Failed to load applicants.</p>";
+            }
+        }
+    </script>
+</body>
+</html>

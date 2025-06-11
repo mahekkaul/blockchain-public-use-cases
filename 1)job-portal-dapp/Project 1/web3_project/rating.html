@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applicant Rating</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Applicant Ratings</h2>
+        <form id="ratingForm">
+            <input type="text" id="applicantName" placeholder="Applicant Name" required>
+            <input type="password" id="adminPassword" placeholder="Admin Password" required>
+            <input type="number" id="rating" min="1" max="5" placeholder="Rating (1-5)" required>
+            <button type="submit">Submit Rating</button>
+        </form>
+        <h3>Ratings</h3>
+        <div class="data-display" id="ratingList"></div>
+        <a href="index.html" class="back-btn">Back to Home</a>
+    </div>
+
+    <script>
+        const contractAddress = "0xeBb6Fac0719C88e7c5ccc3a8DFAebEc8f623775D"; // <- Paste from Remix
+        const contractABI = [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "admin",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllRatings",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "rating",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct ApplicantRating.RatedApplicant[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "rating",
+				"type": "uint256"
+			}
+		],
+		"name": "rateApplicant",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "ratedApplicants",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "rating",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+        let web3;
+        let contract;
+
+        window.addEventListener("load", async () => {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                displayRatings();
+            } else {
+                alert("Please install MetaMask!");
+            }
+        });
+
+        document.getElementById("ratingForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById("applicantName").value;
+            const rating = parseInt(document.getElementById("rating").value);
+            const password = document.getElementById("adminPassword").value;
+
+            if (password !== "admin123") {
+                alert("❌ Incorrect admin password.");
+                return;
+            }
+
+            try {
+                const accounts = await web3.eth.getAccounts();
+                await contract.methods.rateApplicant(name, rating).send({ from: accounts[0] });
+                alert("✅ Rating submitted to blockchain!");
+                this.reset();
+                displayRatings();
+            } catch (err) {
+                alert("Failed to submit rating: " + err.message);
+                console.error(err);
+            }
+        });
+
+        async function displayRatings() {
+            const display = document.getElementById("ratingList");
+            display.innerHTML = "<p>Loading ratings...</p>";
+
+            try {
+                const ratings = await contract.methods.getAllRatings().call();
+                if (ratings.length === 0) {
+                    display.innerHTML = "<p>No ratings available.</p>";
+                } else {
+                    display.innerHTML = ratings.map(r => 
+                        `<p><strong>${r.name}</strong> - Rating: ${r.rating}</p>`
+                    ).join("");
+                }
+            } catch (err) {
+                console.error("Error loading ratings:", err);
+                display.innerHTML = "<p>Failed to load ratings.</p>";
+            }
+        }
+    </script>
+</body>
+</html>

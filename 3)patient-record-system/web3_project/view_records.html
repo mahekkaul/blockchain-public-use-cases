@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Prescriptions</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>My Prescriptions</h2>
+    <div id="prescriptions">Loading...</div>
+    <a href="index.html" class="back-btn">Back to Home</a>
+  </div>
+
+  <script>
+    const contractAddress = "0x070a7Eddb4007a8584872398f88b824d98df831C";
+    const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "medicineName",
+				"type": "string"
+			}
+		],
+		"name": "addMedicine",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "medicineId",
+				"type": "uint256"
+			}
+		],
+		"name": "getMedicineName",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getMyPrescriptions",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "patient",
+				"type": "address"
+			}
+		],
+		"name": "getPatientPrescriptions",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "medicines",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "patientAddresses",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "patientAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "medicineId",
+				"type": "uint256"
+			}
+		],
+		"name": "prescribeMedicine",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "prescriptions",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+    let web3, contract, account;
+
+    window.addEventListener("load", async () => {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        const accounts = await web3.eth.getAccounts();
+        account = accounts[0];
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+        loadMyPrescriptions();
+      } else {
+        alert("MetaMask is not installed!");
+      }
+    });
+
+    async function loadMyPrescriptions() {
+      const container = document.getElementById("prescriptions");
+      container.innerHTML = "Loading...";
+
+      try {
+        const prescriptionIds = await contract.methods.getMyPrescriptions().call({ from: account });
+
+        if (prescriptionIds.length === 0) {
+          container.innerHTML = "<p>No prescriptions found.</p>";
+          return;
+        }
+
+        container.innerHTML = "<ul id='medList'></ul>";
+        const medList = document.getElementById("medList");
+
+        for (let id of prescriptionIds) {
+          const medName = await contract.methods.getMedicineName(id).call();
+          const li = document.createElement("li");
+          li.textContent = `${medName} (ID: ${id})`;
+          medList.appendChild(li);
+        }
+      } catch (err) {
+        container.innerHTML = `<p style="color:red;">❌ Failed to load prescriptions: ${err.message}</p>`;
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{
+    "type": "node",
+    "request": "launch",
+    "name": "Debug Solidity with Hardhat",
+    "program": "${workspaceFolder}/node_modules/.bin/hardhat",
+    "args": ["test"],
+    "cwd": "${workspaceFolder}",
+    "console": "integratedTerminal",
+    "configurations": [
+    {
+        "command": "npm start",
+        "name": "Run npm start",
+        "request": "launch",
+        "type": "node-terminal"
+    }
+    ]
+}
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Chrome",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://localhost:5500",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "solidity",
+            "request": "launch",
+            "name": "Debug Solidity (via contract entry point)"
+        },
+        {
+            "name": "Debug Solidity with Hardhat",
+            "type": "node",
+            "request": "launch",
+            "program": "C:/CLG MU/SEM 6/BC/BC Projects/Project 1/node_modules/.bin/hardhat",
+            "args": ["test"],
+            "cwd": "C:/CLG MU/SEM 6/BC/BC Projects/Project 1",
+            "console": "integratedTerminal",
+            "runtimeArgs": ["--inspect-brk"],
+            "outputCapture": "std"
+        }
+    ]
+}

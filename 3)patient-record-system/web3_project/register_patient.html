@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register Patient</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Patient Registration</h2>
+    <form id="patientForm">
+      <input type="text" id="name" placeholder="Patient Name" required />
+      <input type="number" id="age" placeholder="Age" required />
+      <button type="submit">Register</button>
+    </form>
+
+    <h2>My Medical Data</h2>
+    <button onclick="fetchMyData()">Load My Info</button>
+    <div id="myData"></div>
+
+    <form id="diseaseForm">
+      <input type="text" id="disease" placeholder="Add Disease" required />
+      <button type="submit">Add</button>
+    </form>
+
+    <a href="index.html" class="back-btn">Back to Home</a>
+  </div>
+
+  <script>
+    const contractAddress = "0xbF9C60FF7b86A48062E8EB008711cA49499dE669"; // After re-deploy
+    const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "disease",
+				"type": "string"
+			}
+		],
+		"name": "addDisease",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "age",
+				"type": "uint256"
+			}
+		],
+		"name": "registerPatient",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "newAge",
+				"type": "uint256"
+			}
+		],
+		"name": "updateAge",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllPatients",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "age",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string[]",
+						"name": "diseases",
+						"type": "string[]"
+					}
+				],
+				"internalType": "struct PatientRegistry.Patient[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getMyData",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string[]",
+				"name": "",
+				"type": "string[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "patientAddresses",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "patients",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "age",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+    let web3, contract, account;
+
+    window.addEventListener("load", async () => {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        const accounts = await web3.eth.getAccounts();
+        account = accounts[0];
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+        console.log("Connected:", account);
+      } else {
+        alert("Please install MetaMask!");
+      }
+    });
+
+    document.getElementById("patientForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const age = parseInt(document.getElementById("age").value);
+
+      try {
+        await contract.methods.registerPatient(name, age).send({ from: account });
+        alert("✅ Patient registered!");
+        fetchMyData();
+        this.reset();
+      } catch (err) {
+        alert("❌ " + (err.message.includes("Already registered") ? "You're already registered!" : "Registration failed"));
+      }
+    });
+
+    document.getElementById("diseaseForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const disease = document.getElementById("disease").value.trim().toLowerCase();
+
+      try {
+        const result = await contract.methods.getMyData().call({ from: account });
+        const existingDiseases = Object.values(result)[2];
+
+        const isDuplicate = existingDiseases.some(d => d.toLowerCase() === disease);
+        if (isDuplicate) {
+          alert("⚠️ This disease is already recorded.");
+          return;
+        }
+
+        await contract.methods.addDisease(disease).send({ from: account });
+        alert("✅ Disease added.");
+        fetchMyData();
+        this.reset();
+      } catch (err) {
+        alert("❌ Failed to add disease.");
+        console.error(err);
+      }
+    });
+
+    async function fetchMyData() {
+      if (!account) {
+        alert("Wallet not connected.");
+        return;
+      }
+
+      try {
+        const result = await contract.methods.getMyData().call({ from: account });
+        const [name, age, diseases] = Object.values(result);
+        const uniqueDiseases = [...new Set(diseases)];
+
+        if (!name || parseInt(age) === 0) {
+          document.getElementById("myData").innerHTML = "<p>No data found. Please register first.</p>";
+          return;
+        }
+
+        const html = `
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Age:</strong> ${age}</p>
+          <p><strong>Diseases:</strong><br>${uniqueDiseases.join("<br>")}</p>
+        `;
+        document.getElementById("myData").innerHTML = html;
+      } catch (err) {
+        console.error("Error loading data:", err);
+        document.getElementById("myData").innerHTML = "<p>Error loading your data.</p>";
+      }
+    }
+  </script>
+</body>
+</html>

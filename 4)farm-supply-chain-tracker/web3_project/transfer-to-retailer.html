@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Transfer to Retailer</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Transfer to Retailer</h2>
+    <form id="retailerForm">
+      <input type="text" id="productId" placeholder="Product ID" required>
+      <input type="text" id="retailerName" placeholder="Retailer Name" required>
+      <input type="date" id="retailDate" required>
+      <button type="submit">Transfer</button>
+    </form>
+
+    <div id="confirmation" class="data-display" style="margin-top: 20px;"></div>
+
+    <a href="index.html" class="back-btn">Back to Home</a>
+  </div>
+
+  <script>
+    const contractAddress = "0xBa2B0B2fC2cE549D8D6f5F4001b921398018e79D"; // Replace with deployed contract address
+    const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "productId",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "retailer",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "retailDate",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "productId",
+				"type": "string"
+			}
+		],
+		"name": "getTransfer",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+    let web3;
+    let contract;
+    let account;
+
+    window.addEventListener("load", async () => {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        const accounts = await web3.eth.getAccounts();
+        account = accounts[0];
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+      } else {
+        alert("Please install MetaMask to continue.");
+      }
+    });
+
+    document.getElementById("retailerForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const productId = document.getElementById("productId").value;
+      const retailer = document.getElementById("retailerName").value;
+      const retailDateInput = document.getElementById("retailDate").value;
+      const retailDate = Math.floor(new Date(retailDateInput).getTime() / 1000);
+
+      try {
+        await contract.methods.transfer(productId, retailer, retailDate).send({ from: account });
+
+        // Fetch stored values
+        const result = await contract.methods.getTransfer(productId).call();
+        const timestamp = new Date(result.retailDate * 1000).toLocaleDateString();
+
+        document.getElementById("confirmation").innerHTML = `
+          <h3>✅ Transferred Successfully</h3>
+          <p><strong>Product ID:</strong> ${productId}</p>
+          <p><strong>Retailer:</strong> ${result.retailer}</p>
+          <p><strong>Date:</strong> ${timestamp}</p>
+        `;
+
+        this.reset();
+      } catch (err) {
+        console.error("❌ Error:", err);
+        alert("❌ Transaction failed: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

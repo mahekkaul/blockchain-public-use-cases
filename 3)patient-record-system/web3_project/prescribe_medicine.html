@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Prescribe Medicine</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>📝 Prescribe Medicine</h2>
+    <form id="prescriptionForm">
+      <input type="text" id="patientAddress" placeholder="Patient Wallet Address" required />
+      <input type="number" id="medicineId" placeholder="Medicine ID" required />
+      <button type="submit">Prescribe</button>
+    </form>
+
+    <div id="prescriptionStatus"></div>
+
+    <a href="index.html" class="back-btn">Back to Home</a>
+  </div>
+
+  <script>
+    const contractAddress = "0x070a7Eddb4007a8584872398f88b824d98df831C"; // Update after deployment!
+    const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "medicineName",
+				"type": "string"
+			}
+		],
+		"name": "addMedicine",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "patientAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "medicineId",
+				"type": "uint256"
+			}
+		],
+		"name": "prescribeMedicine",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "patient",
+				"type": "address"
+			}
+		],
+		"name": "getPatientPrescriptions",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "medicines",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "patientAddresses",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "prescriptions",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+    let web3, contract, account;
+
+    window.addEventListener("load", async () => {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        const accounts = await web3.eth.getAccounts();
+        account = accounts[0];
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+        console.log("Connected account:", account);
+      } else {
+        alert("Please install MetaMask!");
+      }
+    });
+
+    document.getElementById("prescriptionForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const patientAddress = document.getElementById("patientAddress").value.trim();
+      const medicineId = parseInt(document.getElementById("medicineId").value);
+
+      if (!web3.utils.isAddress(patientAddress)) {
+        alert("❌ Invalid patient wallet address.");
+        return;
+      }
+
+      try {
+        await contract.methods.prescribeMedicine(patientAddress, medicineId).send({ from: account });
+        document.getElementById("prescriptionStatus").innerHTML = `<p style="color:lightgreen;">✅ Medicine successfully prescribed!</p>`;
+        document.getElementById("prescriptionForm").reset();
+      } catch (err) {
+        console.error("❌ Prescription failed:", err);
+        document.getElementById("prescriptionStatus").innerHTML = `<p style="color:red;">❌ Prescription failed: ${err.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>

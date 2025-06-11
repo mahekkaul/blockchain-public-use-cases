@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Medicines</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Add Medicine</h2>
+        <form id="medicineForm">
+            <input type="number" id="id" placeholder="Medicine ID" required>
+            <input type="text" id="name" placeholder="Name" required>
+            <input type="text" id="expiryDate" placeholder="Expiry Date (e.g. 2025-12-31)" required>
+            <input type="text" id="dose" placeholder="Dose (e.g. 500mg)" required>
+            <input type="number" id="price" placeholder="Price (₹)" required>
+            <button type="submit">Add Medicine</button>
+        </form>
+
+        <h3>Available Medicines</h3>
+        <div id="medicineList"></div>
+
+        <a href="index.html" class="back-btn">Back to Home</a>
+    </div>
+
+    <script>
+        const contractAddress = "0x8247C98b4ACc0A610457fC1ebA1586cD8453f8D3"; // Replace after deploy
+        const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "expiryDate",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "dose",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			}
+		],
+		"name": "addMedicine",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllMedicines",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "expiryDate",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "dose",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "price",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct MedicineRegistry.Medicine[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			}
+		],
+		"name": "getMedicineById",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "medicines",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "expiryDate",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "dose",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+        let web3;
+        let contract;
+        let account;
+
+        window.addEventListener("load", async () => {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                const accounts = await web3.eth.getAccounts();
+                account = accounts[0];
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                displayMedicines();
+            } else {
+                alert("MetaMask is not installed!");
+            }
+        });
+
+        document.getElementById("medicineForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const id = parseInt(document.getElementById("id").value);
+            const name = document.getElementById("name").value;
+            const expiryDate = document.getElementById("expiryDate").value;
+            const dose = document.getElementById("dose").value;
+            const price = parseInt(document.getElementById("price").value);
+
+            await contract.methods.addMedicine(id, name, expiryDate, dose, price).send({ from: account });
+            alert("Medicine added!");
+            displayMedicines();
+            this.reset();
+        });
+
+        async function displayMedicines() {
+            const result = await contract.methods.getAllMedicines().call();
+            const list = document.getElementById("medicineList");
+
+            if (result.length === 0) {
+                list.innerHTML = "<p>No medicines available.</p>";
+                return;
+            }
+
+            list.innerHTML = result.map(m =>
+                `<p><strong>${m.name}</strong> (${m.dose}) – ₹${m.price}, Expires: ${m.expiryDate}</p>`
+            ).join("");
+        }
+    </script>
+</body>
+</html>

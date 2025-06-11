@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Farm Supply Chain System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(rgba(255,255,255,0.1), rgba(0,0,0,0.4)), url('farm-bg1.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            text-align: center;
+            max-width: 600px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #bafcaa;
+        }
+
+        p {
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        a {
+            text-decoration: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #20bf55, #02a3cf);
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        a:hover {
+            background: linear-gradient(135deg, #01baef, #20bf55);
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌿 Farm Supply Chain System</h1>
+        <p>Track your harvest all the way to the retailer with full transparency and trust on blockchain.</p>
+        <div class="buttons">
+            <a href="add-product.html">🧺 Add Farm Product</a>
+            <a href="transfer-to-distributor.html">🚚 Transfer to Distributor</a>
+            <a href="transfer-to-retailer.html">🏬 Transfer to Retailer</a>
+            <a href="view-product.html">🔍 View Product Details</a>
+        </div>
+    </div>
+</body>
+</html>

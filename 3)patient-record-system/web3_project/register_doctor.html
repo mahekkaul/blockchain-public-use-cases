@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register Doctor</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Doctor Registration</h2>
+        <form id="doctorForm">
+            <input type="text" id="name" placeholder="Name" required>
+            <input type="text" id="qualification" placeholder="Qualification" required>
+            <input type="text" id="workPlace" placeholder="Workplace" required>
+            <button type="submit">Register</button>
+        </form>
+
+        <h3>Registered Doctors</h3>
+        <div class="data-display" id="doctorList"></div>
+        <a href="index.html" class="back-btn">Back to Home</a>
+    </div>
+
+    <script>
+        const contractAddress = "0xA854cCCf6799409080fB02ed935eBfc7bdA8f779"; // Replace after deploy
+        const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "doctorAddresses",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "doctors",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "qualification",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "workPlace",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllDoctors",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "qualification",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "workPlace",
+						"type": "string"
+					}
+				],
+				"internalType": "struct DoctorRegistry.Doctor[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "doctorAddress",
+				"type": "address"
+			}
+		],
+		"name": "getDoctor",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "qualification",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "workPlace",
+				"type": "string"
+			}
+		],
+		"name": "registerDoctor",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+];
+
+        let web3;
+        let contract;
+
+        window.addEventListener("load", async () => {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                displayDoctors();
+            } else {
+                alert("MetaMask is not installed!");
+            }
+        });
+
+        document.getElementById("doctorForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById("name").value;
+            const qualification = document.getElementById("qualification").value;
+            const workPlace = document.getElementById("workPlace").value;
+
+            const accounts = await web3.eth.getAccounts();
+            await contract.methods.registerDoctor(name, qualification, workPlace).send({ from: accounts[0] });
+
+            alert("Doctor Registered Successfully!");
+            this.reset();
+            displayDoctors();
+        });
+
+        async function displayDoctors() {
+            const doctors = await contract.methods.getAllDoctors().call();
+            const display = document.getElementById("doctorList");
+            display.innerHTML = doctors.map(d =>
+                `<p><strong>${d.name}</strong> — ${d.qualification} at ${d.workPlace}</p>`
+            ).join("");
+        }
+    </script>
+</body>
+</html>
